@@ -7,8 +7,3 @@ https://docs.arduino.cc/tutorials/nano-33-ble-sense/get-started-with-machine-lea
 https://github.com/clvrai/awesome-rl-envs
 https://github.com/google-deepmind/mujoco?tab=readme-ov-file
 https://github.com/enerrio/CartPole-Reinforcement-Learning
-
-hello, is this working?
-
-
-yes i think it is
