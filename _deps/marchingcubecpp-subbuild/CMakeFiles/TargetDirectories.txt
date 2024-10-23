@@ -1,3 +1,0 @@
-/home/particle/Documents/DS2_Final_Project/_deps/marchingcubecpp-subbuild/CMakeFiles/marchingcubecpp-populate.dir
-/home/particle/Documents/DS2_Final_Project/_deps/marchingcubecpp-subbuild/CMakeFiles/edit_cache.dir
-/home/particle/Documents/DS2_Final_Project/_deps/marchingcubecpp-subbuild/CMakeFiles/rebuild_cache.dir

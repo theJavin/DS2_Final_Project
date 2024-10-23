@@ -1,3 +1,0 @@
-repository='https://github.com/UPC-ViRVIG/SdfLib.git'
-module=''
-tag='origin'

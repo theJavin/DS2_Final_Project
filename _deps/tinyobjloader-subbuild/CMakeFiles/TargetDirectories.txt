@@ -1,3 +1,0 @@
-/home/particle/Documents/DS2_Final_Project/_deps/tinyobjloader-subbuild/CMakeFiles/tinyobjloader-populate.dir
-/home/particle/Documents/DS2_Final_Project/_deps/tinyobjloader-subbuild/CMakeFiles/edit_cache.dir
-/home/particle/Documents/DS2_Final_Project/_deps/tinyobjloader-subbuild/CMakeFiles/rebuild_cache.dir
