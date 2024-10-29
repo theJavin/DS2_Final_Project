@@ -1,0 +1,10 @@
+
+# .gitignore
+build/
+.vscode/
+.idea/
+*.o
+*.so
+*.dll
+*.dylib
+CartPoleRL
