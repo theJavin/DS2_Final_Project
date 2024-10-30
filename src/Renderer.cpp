@@ -1,22 +1,51 @@
 
+
 // Renderer.cpp
 #include "Renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <stdexcept>
+#include <string>
 
 Renderer::Renderer(int width, int height) {
-    initGL();
-    setupShaders();
-    setupGeometry();
-    
-    // Set up viewport
-    int framebufferWidth, framebufferHeight;
-    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-    glViewport(0, 0, framebufferWidth, framebufferHeight);
+    try {
+        initGL();
+        setupShaders();
+        setupGeometry();
+        
+        // Set up viewport
+        int framebufferWidth, framebufferHeight;
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
+    } catch (const std::exception& e) {
+        // Clean up if initialization fails
+        if (window) {
+            glfwDestroyWindow(window);
+        }
+        glfwTerminate();
+        throw;
+    }
+}
+
+Renderer::~Renderer() {
+    if (window) {
+        glfwDestroyWindow(window);
+    }
+    glfwTerminate();
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
 }
 
 void Renderer::initGL() {
-    if (!glfwInit()) throw std::runtime_error("Failed to init GLFW");
+    if (!glfwInit()) {
+        throw std::runtime_error("Failed to init GLFW");
+    }
+    
+    // Set OpenGL version
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
     window = glfwCreateWindow(1024, 768, "CartPole", nullptr, nullptr);
     if (!window) {
@@ -25,14 +54,79 @@ void Renderer::initGL() {
     }
     
     glfwMakeContextCurrent(window);
+    
     if (glewInit() != GLEW_OK) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
         throw std::runtime_error("Failed to init GLEW");
     }
 }
 
 void Renderer::setupShaders() {
-    // Shader setup code remains the same as original
-    // ... (omitted for brevity, copy from original)
+    const char* vertexShaderSource = R"(
+        #version 330 core
+        layout (location = 0) in vec2 aPos;
+        uniform mat4 transform;
+        uniform mat4 view;
+        uniform mat4 projection;
+        void main() {
+            gl_Position = projection * view * transform * vec4(aPos, 0.0, 1.0);
+        }
+    )";
+    
+    const char* fragmentShaderSource = R"(
+        #version 330 core
+        uniform vec3 color;
+        out vec4 FragColor;
+        void main() {
+            FragColor = vec4(color, 1.0);
+        }
+    )";
+    
+    // Compile vertex shader
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    
+    // Check vertex shader compilation
+    GLint success;
+    GLchar infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        throw std::runtime_error(std::string("Vertex shader compilation failed: ") + infoLog);
+    }
+    
+    // Compile fragment shader
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    
+    // Check fragment shader compilation
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        glDeleteShader(vertexShader);
+        throw std::runtime_error(std::string("Fragment shader compilation failed: ") + infoLog);
+    }
+    
+    // Link shaders
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    
+    // Check program linking
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+        throw std::runtime_error(std::string("Shader program linking failed: ") + infoLog);
+    }
+    
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 }
 
 void Renderer::setupGeometry() {

@@ -1,8 +1,8 @@
-
-// ReplayBuffer.hpp
+// include/ReplayBuffer.hpp
 #pragma once
 #include <deque>
-#include <tuple>
+#include <vector>
+#include <random>
 #include <torch/torch.h>
 
 struct Experience {
@@ -30,7 +30,7 @@ public:
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, buffer.size() - 1);
 
-        for (size_t i = 0; i < batch_size; i++) {
+        for (size_t i = 0; i < batch_size && i < buffer.size(); i++) {
             batch.push_back(buffer[dis(gen)]);
         }
         return batch;

@@ -17,11 +17,11 @@ PhysicsSystem::~PhysicsSystem() {
 void PhysicsSystem::createGround() {
     b2BodyDef groundDef;
     groundDef.position.Set(0.0f, -2.0f);
-    b2Body* ground = world->CreateBody(&groundDef);
+    bodies.ground = world->CreateBody(&groundDef);
     
     b2EdgeShape groundShape;
     groundShape.SetTwoSided(b2Vec2(-20.0f, 0.0f), b2Vec2(20.0f, 0.0f));
-    ground->CreateFixture(&groundShape, 0.0f);
+    bodies.ground->CreateFixture(&groundShape, 0.0f);
 }
 
 void PhysicsSystem::createCart() {
@@ -59,9 +59,9 @@ void PhysicsSystem::createPole() {
 }
 
 void PhysicsSystem::createJoints() {
-    // Cart constraint
+    // Cart constraint - now using stored ground body
     b2PrismaticJointDef prismaticDef;
-    prismaticDef.Initialize(world->GetGroundBody(), bodies.cart, 
+    prismaticDef.Initialize(bodies.ground, bodies.cart, 
                           bodies.cart->GetPosition(), b2Vec2(1.0f, 0.0f));
     prismaticDef.enableLimit = true;
     prismaticDef.lowerTranslation = -10.0f;

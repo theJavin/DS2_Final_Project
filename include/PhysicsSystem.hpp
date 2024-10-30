@@ -5,6 +5,7 @@
 class PhysicsSystem {
 public:
     struct Bodies {
+        b2Body* ground;
         b2Body* cart;
         b2Body* pole;
         b2RevoluteJoint* joint;
@@ -15,7 +16,8 @@ public:
     
     void update(float timeStep = 1.0f/60.0f);
     void applyForce(float force);
-    Bodies& getBodies() { return bodies; }
+    const Bodies& getBodies() const { return bodies; }  // Const version
+    Bodies& getBodies() { return bodies; }              // Non-const version
 
 private:
     b2World* world;

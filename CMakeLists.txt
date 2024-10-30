@@ -1,4 +1,3 @@
-
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.18)
 project(CartPoleRL CXX)
@@ -9,12 +8,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add cmake modules path
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Set Torch DIR and include paths
+if(NOT DEFINED TORCH_ROOT)
+    set(TORCH_ROOT "$ENV{HOME}/libtorch")
+endif()
+
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${TORCH_ROOT}")
+
 # Find required packages
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Box2D REQUIRED)
-find_package(LibTorch REQUIRED)
+
+# Find Torch with all required components
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
+message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
+message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 
 # Include directories
 include_directories(
@@ -37,41 +49,32 @@ set(SOURCES
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Link libraries
+# Link libraries (order matters)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
+    ${TORCH_LIBRARIES}
     ${OPENGL_LIBRARIES}
     GLEW::GLEW
     glfw
-    Box2D
-    ${TORCH_LIBRARIES}
+    ${BOX2D_LIBRARIES}
 )
 
-# cmake/FindLibTorch.cmake
-set(TORCH_ROOT "" CACHE PATH "Path to LibTorch installation")
-
-find_path(TORCH_INCLUDE_DIRS torch/torch.h
-    PATHS
-    ${TORCH_ROOT}/include
-    ${TORCH_ROOT}/include/torch/csrc/api/include
-)
-
-if(WIN32)
-    find_library(TORCH_LIBRARIES torch
-        PATHS
-        ${TORCH_ROOT}/lib
-    )
-else()
-    find_library(TORCH_LIBRARIES torch
-        PATHS
-        ${TORCH_ROOT}/lib
+# Set RPATH for Linux
+if(UNIX AND NOT APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "${TORCH_ROOT}/lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH_USE_LINK_PATH TRUE
     )
 endif()
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LibTorch DEFAULT_MSG
-    TORCH_LIBRARIES
-    TORCH_INCLUDE_DIRS
+# Verify LibTorch version and components
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E echo "Found LibTorch: ${TORCH_LIBRARIES}"
+    COMMAND ${CMAKE_COMMAND} -E echo "LibTorch include dirs: ${TORCH_INCLUDE_DIRS}"
 )
 
-mark_as_advanced(TORCH_INCLUDE_DIRS TORCH_LIBRARIES)
+# Add definition to enable CUDA if available
+if(TORCH_CUDA_AVAILABLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE TORCH_CUDA_AVAILABLE)
+endif()

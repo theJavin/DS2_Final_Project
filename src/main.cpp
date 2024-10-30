@@ -1,16 +1,20 @@
-// main.cpp modifications
+
+// Modified main.cpp
+#include <iostream>
+#include <exception>
+#include "CartPoleSimulation.hpp"
+#include "RLTrainer.hpp"
+#include "TrainingConfig.hpp"
+
 int main() {
     try {
-        // Training configuration
         TrainingConfig config;
         config.num_episodes = 1000;
         config.num_parallel_envs = 16;
         
-        // Create and run trainer
         RLTrainer trainer(config);
         trainer.train();
         
-        // After training, run visualization with trained policy
         CartPoleSimulation sim;
         sim.run();
         
